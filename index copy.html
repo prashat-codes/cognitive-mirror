@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cognitive Mirror</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#0a0a0b;--fg:#f5f1ec;--mut:#a79e94;--card:rgba(255,255,255,.055);--bd:rgba(255,255,255,.1);--ac:#ff7a1a;--ac2:#ffb347;--gl:255,122,26;--dot:255,255,255;--on:#1a0d00;color-scheme:dark;
+--c1:#ff7a1a;--c2:#ffd43b;--c3:#f5f1ec;--c4:#ff4d4d;
+--ease:cubic-bezier(.32,.72,0,1);--spring:cubic-bezier(.34,1.56,.64,1);--rd:ui-rounded,"SF Pro Rounded","Nunito","Varela Round",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:light){:root:not([data-mode]){--bg:#fbf7f2;--fg:#1a1410;--mut:#7a6c5f;--card:rgba(255,255,255,.82);--bd:rgba(60,35,10,.14);--ac:#e8590c;--ac2:#f59f00;--gl:232,89,12;--dot:90,50,10;--on:#fff;color-scheme:light;--c1:#e8590c;--c2:#f08c00;--c3:#3a2d22;--c4:#c92a2a}}
+:root[data-mode="dark"]{--bg:#0a0a0b;--fg:#f5f1ec;--mut:#a79e94;--card:rgba(255,255,255,.055);--bd:rgba(255,255,255,.1);--ac:#ff7a1a;--ac2:#ffb347;--gl:255,122,26;--dot:255,255,255;--on:#1a0d00;color-scheme:dark;--c1:#ff7a1a;--c2:#ffd43b;--c3:#f5f1ec;--c4:#ff4d4d}
+:root[data-mode="light"]{--bg:#fbf7f2;--fg:#1a1410;--mut:#7a6c5f;--card:rgba(255,255,255,.82);--bd:rgba(60,35,10,.14);--ac:#e8590c;--ac2:#f59f00;--gl:232,89,12;--dot:90,50,10;--on:#fff;color-scheme:light;--c1:#e8590c;--c2:#f08c00;--c3:#3a2d22;--c4:#c92a2a}
+:root[data-th="amber"]{--ac:#ffa000;--ac2:#ffd54f;--gl:255,160,0}
+:root[data-th="copper"]{--ac:#d9531e;--ac2:#f2a65a;--gl:217,83,30}
+:root[data-th="flame"]{--ac:#ff4d1a;--ac2:#ff9f1c;--gl:255,77,26}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:-20%;z-index:0;background:radial-gradient(40% 35% at 18% 12%,rgba(var(--gl),.26),transparent),radial-gradient(35% 35% at 88% 28%,rgba(255,179,71,.13),transparent),radial-gradient(45% 40% at 50% 98%,rgba(var(--gl),.16),transparent);animation:drift 22s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(4%,3%) scale(1.12)}}
+#bg{position:fixed;inset:0;z-index:0;width:100%;height:100%}
+main{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:20px 16px 80px}
+h1{font:800 clamp(2.7rem,9vw,4rem)/1.02 var(--rd);margin:.1em 0 0;letter-spacing:-.04em;background:linear-gradient(90deg,var(--fg),var(--ac),var(--ac2),var(--ac));background-size:260%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 9s linear infinite}
+@keyframes shine{to{background-position:260%}}
+@keyframes up{from{opacity:0;transform:translateY(22px) scale(.985);filter:blur(5px)}to{opacity:1;transform:none;filter:blur(0)}}
+#v>*{animation:up .7s var(--ease) both}
+#v>*:nth-child(2){animation-delay:.05s}#v>*:nth-child(3){animation-delay:.1s}#v>*:nth-child(4){animation-delay:.15s}#v>*:nth-child(5){animation-delay:.2s}#v>*:nth-child(6){animation-delay:.25s}#v>*:nth-child(7){animation-delay:.3s}
+#nav{display:flex;gap:4px;overflow-x:auto;padding:6px;margin:14px 0 16px;background:var(--card);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border:1px solid var(--bd);border-radius:999px;scrollbar-width:none}
+#nav::-webkit-scrollbar{display:none}
+#nav button{background:transparent;color:var(--mut);border:0;border-radius:999px;margin:0;padding:9px 16px;white-space:nowrap;box-shadow:none;font-family:var(--rd)}
+#nav button:hover{color:var(--fg);transform:none;box-shadow:none}
+#nav button:not(.alt){background:linear-gradient(135deg,var(--ac),var(--ac2));color:var(--on);box-shadow:0 4px 20px rgba(var(--gl),.45)}
+input,textarea{width:100%;box-sizing:border-box;padding:13px 15px;border:1px solid var(--bd);border-radius:18px;background:var(--card);color:var(--fg);font:inherit;margin:6px 0;outline:0;transition:border-color .3s var(--ease),box-shadow .3s var(--ease)}
+input:focus,textarea:focus{border-color:var(--ac);box-shadow:0 0 0 4px rgba(var(--gl),.22)}
+textarea{min-height:104px}
+button{font:700 .9rem var(--rd);padding:10px 18px;border-radius:14px;border:0;background:linear-gradient(135deg,var(--ac),var(--ac2));color:var(--on);cursor:pointer;margin:8px 6px 0 0;transition:transform .4s var(--spring),box-shadow .4s var(--ease),filter .2s;box-shadow:0 6px 18px rgba(var(--gl),.32)}
+button:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(var(--gl),.45);filter:brightness(1.05)}button:active{transform:scale(.95);transition-duration:.12s}
+button.alt{background:var(--card);color:var(--fg);border:1px solid var(--bd);box-shadow:none}
+button:disabled{opacity:.6;animation:pulse 1.2s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 26px rgba(var(--gl),.7)}}
+.card{background:var(--card);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--bd);border-radius:26px;padding:16px 18px;margin:14px 0;transition:transform .5s var(--ease),border-color .4s var(--ease),box-shadow .5s var(--ease);animation:up .7s var(--ease) both}
+.card:hover{border-color:rgba(var(--gl),.55)}
+.tag{display:inline-block;font:800 .74rem var(--rd);letter-spacing:.12em;color:var(--ac);background:rgba(var(--gl),.13);padding:4px 12px;border-radius:999px;margin-bottom:4px}
+.mut{color:var(--mut);font-size:.92rem}p{margin:.45em 0}ul{margin:.3em 0;padding-left:1.2em}
+.hl{font:800 clamp(2rem,6.5vw,2.8rem)/1.08 var(--rd);letter-spacing:-.035em;margin:.15em 0 .25em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.grid .card{margin:0}
+.stat{text-align:center}.big{font:800 2.5rem/1.1 var(--rd);background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tile{cursor:pointer;text-align:center}.tile b{font-family:var(--rd);font-size:1.02rem}.tile:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 18px 40px rgba(var(--gl),.28)}.tile:active{transform:scale(.97);transition-duration:.15s}.ico{font-size:2rem}
+.sh{display:flex;justify-content:space-between;font-size:.9rem;margin-top:8px}
+.sbar{height:9px;border-radius:999px;background:var(--bd);overflow:hidden;margin:4px 0 6px}
+.sbar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width 1.4s var(--ease);box-shadow:0 0 14px rgba(var(--gl),.7)}
+.svgwrap{overflow-x:auto}svg{width:100%;max-width:580px;display:block;margin:0 auto}
+svg circle{transform-box:fill-box;transform-origin:center;transition:transform .35s var(--spring);filter:drop-shadow(0 0 6px rgba(var(--gl),.8))}svg circle:hover{transform:scale(1.5)}
+svg polyline{filter:drop-shadow(0 0 4px currentColor)}
+.chips button{margin:4px 4px 0 0}
+#msg{font-size:.88rem;color:var(--ac);min-height:1.2em}
+.pre{white-space:pre-wrap}
+.by{font:700 .85rem var(--rd);letter-spacing:.16em;text-transform:uppercase;color:var(--ac);margin:4px 0 8px}
+.ft{text-align:center;color:var(--mut);font-size:.8rem;margin-top:44px}
+#ctl{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:6px 0}
+.dot{width:24px;height:24px;padding:0;border-radius:50%;margin:0 4px 0 0;border:2px solid var(--bd)}
+#sp{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);text-align:center;padding:20px;transition:opacity .9s var(--ease),visibility .9s,transform .9s var(--ease)}
+#sp.out{opacity:0;visibility:hidden;transform:scale(1.05)}
+#sp>*{animation:up 1s var(--ease) both}
+#sp>.brain{width:150px;height:131px;filter:drop-shadow(0 0 26px rgba(var(--gl),.8));animation:up 1s both,glide 3.6s ease-in-out infinite}
+@keyframes glide{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.sw{animation:swp 3s ease-in-out infinite}@keyframes swp{from{transform:translateX(0)}to{transform:translateX(250px)}}
+#sp h2{font:800 clamp(2.5rem,11vw,4.6rem)/1.05 var(--rd);margin:.5em 0 0;letter-spacing:-.04em;background:linear-gradient(90deg,var(--fg),var(--ac),var(--ac2),var(--ac));background-size:260%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:up 1s .15s both,shine 8s linear infinite}
+.sp1{font-size:1.1rem;animation-delay:.3s!important}.sp2{color:var(--mut);letter-spacing:.16em;text-transform:uppercase;font-size:.8rem;animation-delay:.45s!important}
+#enter{animation-delay:.6s!important;margin-top:22px;padding:14px 30px;font-size:1.02rem;border-radius:18px}
+#sp input{max-width:320px;text-align:center}.sp3{margin:14px 0 4px}#pk{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+#pk .dot{width:32px;height:32px;margin:0}#pk .alt{margin:0}
+.badge{display:inline-block;margin:6px 0;padding:6px 16px;border-radius:999px;background:linear-gradient(135deg,var(--ac),var(--ac2));color:var(--on);font:800 .88rem var(--rd);box-shadow:0 6px 22px rgba(var(--gl),.4)}
+#toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translate(-50%,50px) scale(.9);opacity:0;z-index:60;padding:12px 22px;border-radius:999px;background:var(--card);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--ac);font:700 .95rem var(--rd);transition:all .55s var(--spring);pointer-events:none}
+#toast.on{opacity:1;transform:translate(-50%,0) scale(1)}
+.cf{position:fixed;top:-30px;z-index:70;font-size:1.5rem;pointer-events:none;animation:fall 1.9s cubic-bezier(.4,0,.6,1) forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:0}}
+.fl{position:fixed;z-index:0;font-size:1.6rem;opacity:.2;pointer-events:none;animation:flt 8s ease-in-out infinite alternate}
+@keyframes flt{to{transform:translateY(-26px) rotate(14deg)}}
+.bb{width:110px;height:110px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--ac2),var(--ac));box-shadow:0 0 44px rgba(var(--gl),.7)}
+.bb.on{animation:bbr 16s linear 1}@keyframes bbr{0%{transform:scale(1)}25%,50%{transform:scale(1.7)}75%,100%{transform:scale(1)}}
+#top{position:fixed;top:0;left:0;right:0;z-index:20;padding-top:calc(env(safe-area-inset-top,0px)*var(--p,0))}
+#top::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--bg);opacity:calc(var(--p,0)*.86);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border-bottom:1px solid rgba(var(--gl),calc(var(--p,0)*.3))}
+#top .in{max-width:920px;margin:0 auto;padding:12px 16px 6px;box-sizing:border-box}
+#top h1{white-space:nowrap;line-height:1;margin:0 0 4px;display:block}
+#sub{overflow:hidden}#nav{margin:8px 0 4px!important}
+@media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style></head><body><canvas id="bg"></canvas><div id="sp"><svg class="brain" viewBox="0 0 160 140" aria-hidden="true"><defs><clipPath id="bc"><path d="M80 20C60 5 30 15 28 40 10 45 5 70 20 82 15 100 30 118 50 114 58 128 75 128 80 118 85 128 102 128 110 114 130 118 145 100 140 82 155 70 150 45 132 40 130 15 100 5 80 20Z"/></clipPath></defs><path d="M80 20C60 5 30 15 28 40 10 45 5 70 20 82 15 100 30 118 50 114 58 128 75 128 80 118 85 128 102 128 110 114 130 118 145 100 140 82 155 70 150 45 132 40 130 15 100 5 80 20Z" fill="rgba(255,122,26,.14)" stroke="var(--ac)" stroke-width="3" stroke-linejoin="round"/><path d="M80 22V116M52 48C64 50 68 60 58 68M108 48C96 50 92 60 102 68M44 88C58 86 66 94 60 104M116 88C102 86 94 94 100 104" fill="none" stroke="var(--ac2)" stroke-width="2.2" stroke-linecap="round"/><g clip-path="url(#bc)"><polygon class="sw" points="-70,0 -35,0 -5,140 -40,140" fill="rgba(255,255,255,.5)"/></g></svg><h2>Cognitive Mirror</h2><p class="sp2">by Prashant Chaudhary</p><p class="sp1">Heyyy 👋 what do we call you, bestie?</p><input id="nm" maxlength="24" placeholder="your name or a fun nickname"><p class="mut sp3">Pick your vibe 🎨</p><div id="pk"></div><button id="enter">Enter the mirror ✨</button></div><header id="top"><div class="in"><h1 id="ttl">Cognitive Mirror</h1><div id="sub"><div class="by">by Prashant Chaudhary</div><p class="mut">no cap — see how your brain actually thinks 🧠✨</p><div id="ctl"></div></div><div id="nav"></div></div></header><div id="sp0"></div><main><div id="msg"></div><div id="v"></div>
+<div id="toast"></div><footer class="ft">Cognitive Mirror · made with 🧠 by Prashant Chaudhary</footer></main>
+<script>
+var $=function(i){return document.getElementById(i)};
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+var D={};try{D=JSON.parse(localStorage.getItem("mind2"))||{}}catch(e){}
+D.c=D.c||[];D.s=D.s||[];D.dq=D.dq||{};D.j=D.j||[];D.fc=D.fc||[];D.f=D.f||{};
+function sv(){try{localStorage.setItem("mind2",JSON.stringify(D))}catch(e){}}
+var S=null,DAY=864e5;
+async function ens(){if(!S)S=await claude.use("sample");if(!S)throw 0;return S}
+var TONE="Write in a warm, funny Gen Z voice: light slang (no cap, lowkey, it’s giving, cooked, slay, bet) and a few emojis, but stay accurate, kind and genuinely useful; keep slang light so it stays readable. JSON keys must stay exactly as specified. ";
+async function J(p){return (await ens()).json(TONE+p)}
+async function T(p,cb){if(Array.isArray(p)){p=p.map(function(m,i){return i?m:{role:m.role,content:TONE+m.content}})}else p=TONE+p;var s=await ens();var r=await s(p,{onText:function(x){cb(x.text)},cache:false});return r.text}
+async function busy(b,fn){b.disabled=true;$("msg").textContent=["cooking… 🍳","vibe-checking your brain… 🧠","locking in… 🔒","one sec bestie… ✨","consulting the lore… 📜"][Math.floor(Math.random()*5)];try{await fn();$("msg").textContent=""}catch(e){$("msg").textContent="that flopped 💀 (the AI might be unavailable, or it sent something weird). try again?"}b.disabled=false}
+function card(t,b){var d=el("div","card");d.appendChild(el("div","tag",t));
+ if(Array.isArray(b)){var u=el("ul");b.forEach(function(x){u.appendChild(el("li",null,x))});d.appendChild(u)}else if(b)d.appendChild(el("p","pre",b));return d}
+function find(n){n=String(n).toLowerCase();return D.c.filter(function(c){return c.n.toLowerCase()==n})[0]}
+function names(){return D.c.slice(-30).map(function(c){return c.n})}
+function addC(n,f,l){if(find(n))return;gain(3,"new lore");D.c.push({n:n,f:f||"General",l:(l||[]).filter(find).map(function(x){return find(x).n}),box:0,due:Date.now()+DAY,t:Date.now()});sv()}
+function cross(){var k=0;D.c.forEach(function(c){c.l.forEach(function(x){var o=find(x);if(o&&o.f!=c.f)k++})});return k}
+function hue(f){var h=0;for(var i=0;i<f.length;i++)h=(h*31+f.charCodeAt(i))%360;return h}
+function area(v,ph){var a=el("textarea");a.placeholder=ph;v.appendChild(a);mic(v,a);return a}
+function btn(v,t,fn,alt){var b=el("button",alt?"alt":"",t);b.onclick=function(){busy(b,fn)};v.appendChild(b);return b}
+function save(type,topic,txt,s,extra){gain(10,"session done");var r={d:Date.now(),t:type,topic:topic,txt:txt,s:s};for(var k in extra||{})r[k]=extra[k];D.s.push(r);sv()}
+function nums(o){var s={};["reasoning","assumptions","evidence","alternatives"].forEach(function(k){s[k]=Math.max(0,Math.min(10,+o[k]||0))});return s}
+function cnt(e,to,suf){var t0=performance.now();(function f(t){var p=Math.min(1,(t-t0)/900);e.textContent=Math.round(to*p*10)/10+(suf||"");if(p<1)requestAnimationFrame(f)})(t0)}
+function scoreCard(s){var d=el("div","card");d.appendChild(el("div","tag","YOUR SCORES 📊"));[["Reasoning 🧩","reasoning"],["Spotting your own bias 🪞","assumptions"],["Receipts 🧾","evidence"],["Other angles 🔄","alternatives"]].forEach(function(r){var h=el("div","sh"),n=el("b",null,"0"),b=el("div","sbar"),i=el("i");h.appendChild(el("span",null,r[0]));h.appendChild(n);b.appendChild(i);d.appendChild(h);d.appendChild(b);setTimeout(function(){i.style.width=s[r[1]]*10+"%"},80);cnt(n,s[r[1]],"/10")});return d}
+
+var SCORE="Score the QUALITY OF REASONING (not correctness) 0-10 on reasoning, assumptions (awareness of own), evidence, alternatives. Be harsh: 5 is average, 9+ is rare. ";
+
+/* 1 MY MIND */
+function vMind(){var v=$("v");v.textContent="";
+ var f={};D.c.forEach(function(c){f[c.f]=1});var ls=D.s[D.s.length-1];
+var hero=el("div",null);hero.appendChild(el("div","tag","WELCOME BACK, "+(PF.name||"BESTIE").toUpperCase()+" 🫶"));hero.appendChild(el("div","hl","Your brain, but reflected ✨"));var lv=lvl();hero.appendChild(el("div","badge",lv.n+" · "+(D.xp||0)+" aura · "+(D.st||0)+"🔥 streak"));var ab=el("div","sbar"),ai=el("i");ab.appendChild(ai);hero.appendChild(ab);setTimeout(function(){ai.style.width=lv.p+"%"},100);v.appendChild(hero);
+ var g=el("div","grid");[[D.c.length,"concepts 🧠"],[Object.keys(f).length,"fields 🌍"],[cross(),"brain links 🔗"],[D.s.length,"sessions 🔥"]].forEach(function(x){var c=el("div","card stat"),n=el("div","big","0");c.appendChild(n);c.appendChild(el("div","mut",x[1]));g.appendChild(c);cnt(n,x[0])});v.appendChild(g);
+ var tg=el("div","grid");tg.style.marginTop="12px";[["🧭","EXPLORE","find your next obsession",1],["⚡","CHALLENGE ME","today’s brain workout, no skips",2],["🕸️","MY KNOWLEDGE","your brain’s lore map",3],["⚖️","DECISION LAB","choose violence (smartly)",4],["📈","PROGRESS","glow-up tracker 📈",5],["💡","GROWTH HUB","tips to level up your brain",6],["📓","DAILY MIRROR","journal + weekly letter",7],["🎓","EXAM PREP","plan, flashcards, mock quiz",8],["🏋️","BRAIN GYM","games & methods",9]].forEach(function(x){var t=el("div","card tile");t.appendChild(el("div","ico",x[0]));t.appendChild(el("b",null,x[1]));t.appendChild(el("div","mut",x[2]));t.onclick=function(){cur=x[3];nav();V[x[3]]()};tg.appendChild(t)});v.appendChild(tg);mcard(v);tipDay(v);bdg(v);bcard(v);
+ var due=D.c.filter(function(c){return c.due<=Date.now()}).sort(function(a,b){return a.due-b.due});
+ if(!D.c.length){v.appendChild(card("REVISION","Add concepts in EXPLORE and your spaced-repetition reviews will appear here."));return}
+ if(!due.length){v.appendChild(card("REVISION","Nothing due today. Your memory is up to date."));return}
+ var c=due[0],box=card("REVISION · "+due.length+" DUE","Concept: "+c.n+" ("+c.f+")");v.appendChild(box);
+ var q="",a=null,out=el("p","pre");
+ btn(box,"Quiz me fr 🧠",async function(){var r=await J("Ask ONE short question that tests real understanding (not trivia) of the concept “"+c.n+"” in "+c.f+". Return JSON {\"q\":string}");q=r.q;box.appendChild(el("p",null,q));a=area(box,"your answer, no cap…");
+  btn(box,"Lock it in 🔒",async function(){var r=await J("Question: "+q+"\nAnswer: "+a.value+"\nJudge whether this shows real understanding of "+c.n+". Return JSON {\"ok\":boolean,\"feedback\":one sentence stating the correct idea}");
+   gain(r.ok?5:1,r.ok?"big brain":"at least you tried");c.box=r.ok?Math.min(c.box+1,4):0;c.due=Date.now()+[1,2,4,8,16][c.box]*DAY;sv();out.textContent=(r.ok?"✓ ":"✗ ")+r.feedback+" (next review in "+[1,2,4,8,16][c.box]+" day"+(c.box?"s":"")+")";box.appendChild(out);
+   var n=el("button","alt","Next one ➡️");n.onclick=vMind;box.appendChild(n)})})}
+
+/* 2 EXPLORE */
+function vExplore(){var v=$("v");v.textContent="";v.appendChild(el("p","mut","Discover big ideas. Add the ones you learn to your knowledge universe."));
+ var ch=el("div","chips"),res=el("div"),inp=el("input");inp.placeholder="…or type any subject";
+ function go(f,b){busy(b,async function(){res.textContent="";var r=await J("Suggest 3 fascinating, non-obvious big ideas from "+f+" for a curious adult. The learner already knows: "+(names().join(", ")||"nothing yet")+". Return JSON {\"ideas\":[{\"name\":short title,\"hook\":2 vivid sentences,\"connects\":[names from the known list that truly relate, may be empty]}]}");
+  r.ideas.slice(0,3).forEach(function(i){var c=card(String(i.name).toUpperCase(),i.hook);
+   if(i.connects&&i.connects.length)c.appendChild(el("p","mut","Connects to: "+i.connects.join(", ")));
+   var b2=el("button",null,find(i.name)?"in the lore ✅":"got it, add to lore ✅");b2.onclick=function(){addC(i.name,f,i.connects);b2.textContent="in the lore ✅"};c.appendChild(b2);res.appendChild(c)})})}
+ ["Psychology","Economics","History","Philosophy","Physics","Biology","Mathematics","Politics","Art & Culture","Computer Science"].forEach(function(f){var b=el("button","alt",f);b.onclick=function(){go(f,b)};ch.appendChild(b)});
+ v.appendChild(ch);v.appendChild(inp);var b=el("button",null,"Let’s explore 🔭");b.onclick=function(){if(inp.value.trim())go(inp.value.trim(),b)};v.appendChild(b);v.appendChild(res)}
+
+/* 3 CHALLENGE ME */
+function vChal(){var v=$("v");v.textContent="";var day=new Date().toISOString().slice(0,10);
+ var qb=card("TODAY’S QUESTION 🔥",D.dq[day]||"Not generated yet.");v.appendChild(qb);
+ function ui(){var a=area(v,"spill your thoughts, we’re not judging (ok a little)…"),out=el("div");
+  btn(v,"Rate my thinking 👀",async function(){var r=await J(SCORE+"Question: "+D.dq[day]+"\nAnswer: "+a.value+"\nReturn JSON {\"scores\":{\"reasoning\":n,\"assumptions\":n,\"evidence\":n,\"alternatives\":n},\"assumptions\":[hidden assumptions they made],\"gaps\":[logical gaps],\"alternatives\":[alternative explanations they missed],\"tip\":one sentence}");
+   var s=nums(r.scores);save("challenge",D.dq[day],a.value,s,{tip:r.tip});out.textContent="";[scoreCard(s),card("SUS ASSUMPTIONS 🚩",r.assumptions),card("PLOT HOLES 🕳️",r.gaps),card("WHAT YOU SLEPT ON 😴",r.alternatives),card("LEVEL UP TIP ⬆️",r.tip)].forEach(function(x){out.appendChild(x)})});v.appendChild(out)}
+ if(D.dq[day])ui();else btn(v,"Drop today’s question 🔥",async function(){var r=await J("Write ONE difficult, open-ended question with no single right answer that rewards careful reasoning (under 45 words). Prefer topics linking fields like "+(names().slice(0,6).join(", ")||"psychology, economics, ethics")+". Today is "+day+". Return JSON {\"q\":string}");D.dq[day]=r.q;sv();vChal()});
+ v.appendChild(el("div","tag","THE HATER (but make it educational) 🥊")).style.marginTop="26px";v.appendChild(el("p","mut","State an opinion. It will refuse to just agree."));
+ var oh=[],log=el("div"),ot=area(v,"hot take: I believe that…");v.appendChild(log);
+ btn(v,"Fight me 🥊",async function(){var t=ot.value.trim();if(!t)return;D.f=D.f||{};D.f.hater=1;sv();oh.push({role:"user",content:oh.length?t:"You are an intellectual opponent. Never agree just to be nice. Give the strongest counterarguments, ask one uncomfortable question, and demand evidence. Under 110 words, plain text. My position: "+t});
+  ot.value="";var d=el("div","card pre");log.appendChild(d);var r=await T(oh,function(x){d.textContent=x});oh.push({role:"assistant",content:r})});debate(v)}
+
+/* 4 MY KNOWLEDGE */
+function vKnow(){var v=$("v");v.textContent="";var inp=el("input");inp.placeholder="Add something you know or learned (e.g. Nash equilibrium)";v.appendChild(inp);
+ btn(v,"Add to my lore ➕",async function(){var n=inp.value.trim();if(!n)return;var r=await J("Concept: “"+n+"”. Existing concepts: "+(names().join(", ")||"none")+". Return JSON {\"field\":one academic field,\"connects\":[existing concepts it genuinely relates to]}");addC(n,r.field,r.connects);vKnow()});
+ if(!D.c.length){v.appendChild(el("p","mut","Your universe is empty. Add a concept above or use EXPLORE."));return}
+ var cs=D.c.slice(-30),W=420,svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.setAttribute("viewBox","0 0 "+W+" "+W);var info=card("TAP A CONCEPT","Select a circle to see its links.");var ip=info.lastChild;
+ function P(i){var a=2*Math.PI*i/cs.length-Math.PI/2;return[W/2+(W/2-45)*Math.cos(a),W/2+(W/2-45)*Math.sin(a)]}
+ function mk(t,o){var e=document.createElementNS(svg.namespaceURI,t);for(var k in o)e.setAttribute(k,o[k]);return e}
+ cs.forEach(function(c,i){c.l.forEach(function(x){var j=cs.indexOf(find(x));if(j<0)return;var p=P(i),q=P(j);svg.appendChild(mk("line",{x1:p[0],y1:p[1],x2:q[0],y2:q[1],stroke:cs[j].f!=c.f?"var(--c2)":"var(--bd)","stroke-width":cs[j].f!=c.f?2:1.2}))})});
+ cs.forEach(function(c,i){var p=P(i),g=mk("circle",{cx:p[0],cy:p[1],r:11,fill:"hsl("+(8+hue(c.f)%48)+" 92% "+(46+hue(c.f)%4*7)+"%)",style:"cursor:pointer"});
+  g.onclick=function(){ip.textContent=c.n+" · "+c.f+(c.l.length?" · linked to "+c.l.join(", "):" · no links yet")};svg.appendChild(g);
+  var t=mk("text",{x:p[0],y:p[1]+(p[1]<W/2?-16:24),"text-anchor":"middle","font-size":10,fill:"var(--fg)","font-family":"system-ui"});t.textContent=c.n.slice(0,16);svg.appendChild(t)});
+ var w=el("div","svgwrap");w.appendChild(svg);v.appendChild(w);
+ var lg=el("p","mut","Circle colour = field. Orange lines = cross-field connections.");v.appendChild(lg);v.appendChild(info);
+ var out=el("div","card pre");out.hidden=true;
+ btn(v,"Find hidden bridges between my fields",async function(){out.hidden=false;await T("My knowledge universe (concept – field): "+D.c.slice(-40).map(function(c){return c.n+" – "+c.f}).join("; ")+"\nSuggest 3 non-obvious connections between concepts from DIFFERENT fields, each in 2 sentences, then ask me one question that forces me to use the bridge. Plain text.",function(x){out.textContent=x})},true);v.appendChild(out)}
+
+/* 5 DECISION LAB */
+function vDec(){var v=$("v");v.textContent="";var inp=el("input");inp.placeholder="Optional domain: business, ethics, health, politics…";v.appendChild(inp);var sc="";
+ var box=el("div");v.appendChild(box);
+ btn(v,"Drop a scenario 🎲",async function(){var r=await J("Write a realistic decision scenario"+(inp.value?" in the domain of "+inp.value:"")+" (under 90 words) with real tradeoffs, incomplete information and a deadline. Return JSON {\"scenario\":string}");sc=r.scenario;box.textContent="";box.appendChild(card("THE SCENARIO 🎲",sc));
+  var d=area(box,"Your decision and exactly why…");
+  var out=el("div");var b=el("button",null,"Show me the receipts 🧾");b.onclick=function(){busy(b,async function(){var r=await J(SCORE+"Scenario: "+sc+"\nDecision and reasoning: "+d.value+"\nReturn JSON {\"scores\":{\"reasoning\":n,\"assumptions\":n,\"evidence\":n,\"alternatives\":n},\"short_term\":[likely consequences],\"long_term\":[likely consequences],\"hidden\":[hidden assumptions],\"alternatives\":[better or different approaches]}");
+   var s=nums(r.scores);save("decision",sc,d.value,s);out.textContent="";[scoreCard(s),card("THE IMMEDIATE VIBES ⚡",r.short_term),card("THE LONG GAME ♟️",r.long_term),card("SUS ASSUMPTIONS 🚩",r.hidden),card("PLOT TWIST OPTIONS 🔀",r.alternatives)].forEach(function(x){out.appendChild(x)})})};
+  box.appendChild(b);box.appendChild(out)})}
+
+/* 6 PROGRESS */
+function vProg(){var v=$("v");v.textContent="";var S2=D.s;
+ v.appendChild(card("GROWTH",[D.c.length+" concepts · "+cross()+" cross-field connections",S2.length+" sessions recorded"]));
+ if(S2.length<2){v.appendChild(el("p","mut","Complete at least 2 sessions in CHALLENGE ME or DECISION LAB to see your evolution."));return}
+ var W=520,H=200,svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.setAttribute("viewBox","0 0 "+W+" "+(H+20));
+ ["reasoning","assumptions","evidence","alternatives"].forEach(function(k,j){var p=document.createElementNS(svg.namespaceURI,"polyline");
+  p.setAttribute("points",S2.map(function(s,i){return(20+i*(W-40)/(S2.length-1))+","+(H-s.s[k]*H/10+10)}).join(" "));p.setAttribute("fill","none");p.setAttribute("stroke","var(--c"+(j+1)+")");p.setAttribute("stroke-width",2.5);svg.appendChild(p)});
+ var w=el("div","svgwrap");w.appendChild(svg);v.appendChild(w);
+ var lg=el("p","mut","");["reasoning","assumptions","evidence","alternatives"].forEach(function(k,j){var s=el("span",null,"● "+k+"  ");s.style.color="var(--c"+(j+1)+")";lg.appendChild(s)});v.appendChild(lg);
+ var ch=S2.filter(function(s){return s.t=="challenge"});
+ if(ch.length>1){var o=ch[0],n=ch[ch.length-1],out=el("div","card pre");out.hidden=true;
+  btn(v,"Compare my oldest and newest reasoning",async function(){out.hidden=false;await T("Compare how this person reasons, then versus now. Focus on assumptions, evidence use, alternatives considered and structure. 5 sentences, direct.\nOLD ("+new Date(o.d).toDateString()+"): Q: "+o.topic+"\nA: "+o.txt+"\nNEW ("+new Date(n.d).toDateString()+"): Q: "+n.topic+"\nA: "+n.txt,function(x){out.textContent=x})});v.appendChild(out)}
+ v.appendChild(el("div","tag","TIMELINE")).style.marginTop="20px";
+ S2.slice().reverse().forEach(function(s){v.appendChild(card(new Date(s.d).toDateString().toUpperCase()+" · "+s.t.toUpperCase(),s.topic.slice(0,120)+"\nReasoning "+s.s.reasoning+" · Assumptions "+s.s.assumptions+" · Evidence "+s.s.evidence+" · Alternatives "+s.s.alternatives))})}
+
+var V=[vMind,vExplore,vChal,vKnow,vDec,vProg,vTips,vJour,vExam,vGym],TB=["🧠 MY MIND","🔭 EXPLORE","🔥 CHALLENGE ME","🕸️ MY KNOWLEDGE","🎲 DECISION LAB","📈 PROGRESS","💡 GROWTH HUB","📓 DAILY MIRROR","🎓 EXAM PREP","🏋️ BRAIN GYM"],cur=0;
+function nav(){var n=$("nav");n.textContent="";TB.forEach(function(t,i){var b=el("button",i==cur?"":"alt",t);b.onclick=function(){cur=i;clearInterval(window.TM);$("msg").textContent="";nav();V[i]()};n.appendChild(b)})}
+(function(){var c=$("bg"),x=c.getContext("2d"),P=[],m={x:-999,y:-999},col=getComputedStyle(document.documentElement).getPropertyValue("--dot").trim()||"255,255,255";
+window.recol=function(){col=getComputedStyle(document.documentElement).getPropertyValue("--dot").trim()||"255,255,255"};function rs(){c.width=innerWidth;c.height=innerHeight}rs();addEventListener("resize",rs);addEventListener("pointermove",function(e){m.x=e.clientX;m.y=e.clientY});
+for(var i=0;i<70;i++)P.push({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3});
+function f(){x.clearRect(0,0,c.width,c.height);P.forEach(function(p,i){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>c.width)p.vx*=-1;if(p.y<0||p.y>c.height)p.vy*=-1;x.fillStyle="rgba("+col+",.7)";x.beginPath();x.arc(p.x,p.y,1.6,0,6.3);x.fill();
+for(var j=i+1;j<P.length;j++){var q=P[j],d=Math.hypot(p.x-q.x,p.y-q.y);if(d<120){x.strokeStyle="rgba("+col+","+.18*(1-d/120)+")";x.beginPath();x.moveTo(p.x,p.y);x.lineTo(q.x,q.y);x.stroke()}}
+var dm=Math.hypot(p.x-m.x,p.y-m.y);if(dm<170){x.strokeStyle="rgba(255,122,26,"+.55*(1-dm/170)+")";x.beginPath();x.moveTo(p.x,p.y);x.lineTo(m.x,m.y);x.stroke()}});requestAnimationFrame(f)}f()})();
+
+var PF={};try{PF=JSON.parse(localStorage.getItem("cm_pf"))||{}}catch(e){}
+function pfs(){try{localStorage.setItem("cm_pf",JSON.stringify(PF))}catch(e){}}
+function th(t){document.documentElement.setAttribute("data-th",t);PF.th=t;pfs()}
+function snd(f){try{var a=snd.a||(snd.a=new(window.AudioContext||window.webkitAudioContext)()),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(a.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.18);o.stop(a.currentTime+.18)}catch(e){}}
+(function(){if(PF.th)th(PF.th);var c=$("ctl");
+[["sunset","#ff7a1a,#ffb347"],["amber","#ffa000,#ffd54f"],["copper","#d9531e,#f2a65a"],["flame","#ff4d1a,#ff9f1c"]].forEach(function(t){var b=el("button","dot");b.title=t[0];b.style.background="linear-gradient(135deg,"+t[1]+")";b.onclick=function(){th(t[0])};c.appendChild(b)});
+var sb=el("button","alt",PF.snd?"🔊 sound on":"🔇 sound off");sb.style.margin="0 0 0 8px";sb.onclick=function(){PF.snd=!PF.snd;pfs();sb.textContent=PF.snd?"🔊 sound on":"🔇 sound off"};c.appendChild(sb);var eb=el("button","alt","✏️ name & vibe");eb.style.margin="0 0 0 8px";eb.onclick=function(){$("sp").className=""};c.appendChild(eb);
+document.addEventListener("click",function(e){if(PF.snd&&e.target.closest&&e.target.closest("button,.tile"))snd(480+Math.random()*260)})})();
+
+var LV=[[0,"NPC 🧍"],[20,"Side Quest 🗺️"],[60,"Rising Star ⭐"],[120,"Big Brain 🧠"],[220,"Main Character 👑"],[400,"Galaxy Brain 🌌"]];
+function lvl(){var x=D.xp||0,i=0;LV.forEach(function(l,k){if(x>=l[0])i=k});var a=LV[i][0],b=LV[i+1]?LV[i+1][0]:a+100;return{n:LV[i][1],p:Math.min(100,(x-a)/(b-a)*100)}}
+function confetti(){var E=["✨","🔥","💫","🎉","🧠","💅"];for(var i=0;i<22;i++){var c=el("span","cf",E[i%6]);c.style.left=Math.random()*100+"%";c.style.animationDelay=Math.random()*.5+"s";document.body.appendChild(c);setTimeout(function(c){return function(){c.remove()}}(c),2500)}}
+function toast(t){var e=$("toast");e.textContent=t;e.className="on";setTimeout(function(){e.className=""},2200)}
+function gain(n,m){var d=new Date().toISOString().slice(0,10),y=new Date(Date.now()-DAY).toISOString().slice(0,10),b=lvl().n;
+ if(D.last!=d){D.st=D.last==y?(D.st||0)+1:1;D.last=d}D.xp=(D.xp||0)+n;sv();var a=lvl().n;
+ toast(a!=b?"LEVEL UP → "+a+" 🚀":"+"+n+" aura ✨ "+m+((D.st>1)?" · "+D.st+"🔥 streak":""));if(a!=b||n>=10)confetti();bchk()}
+["🧠","✨","🔥","💀","🫶","👀","🚀","💅"].forEach(function(e,i){var f=el("span","fl",e);f.style.left=(6+i*12)+"%";f.style.top=(10+(i*37)%70)+"%";f.style.animationDelay=i*.7+"s";document.body.appendChild(f)});
+
+var G=[
+{k:"study",i:"📚",t:"Study Smarter",s:"learn more in less time",tips:[
+["Test yourself, don’t just reread","Pulling info out of your head (retrieval practice) builds memory far better than rereading.","Close your notes, write everything you remember, then check the gaps."],
+["Space it out","Short sessions spread over days beat one all-nighter cram.","Review today’s topic tomorrow, in 3 days, then in a week."],
+["Mix your topics","Switching between problem types (interleaving) feels harder but helps you apply ideas later.","Alternate 2–3 topics in one session instead of one long block."],
+["Explain it like they’re 12","If you can’t explain it simply, you don’t fully get it yet (the Feynman method).","Teach a friend or voice-note an explanation, then fix the shaky parts."]]},
+{k:"span",i:"🎯",t:"Attention Span",s:"train your brain to stay put",tips:[
+["Start small, grow slowly","Attention is trainable, like a gym rep. Build up gradually.","Do 15 distraction-free minutes today, add 5 every few days."],
+["Phone in another room","Even a phone sitting in view can pull your attention away.","Put it out of reach for your next study block."],
+["One tab, one task","Task-switching costs time and quality.","Write your single task on a sticky note and close everything else."],
+["Let boredom train you","Constant scrolling trains you to expect novelty. Sitting with a slower task rebuilds patience.","Read 10 pages of a book with no screen nearby."]]},
+{k:"focus",i:"🔥",t:"Deep Focus",s:"lock in, no cap",tips:[
+["Pomodoro it","25 minutes of focus plus a 5-minute break keeps energy steady. Try 50/10 for deeper work.","Use the focus timer on this page."],
+["If–then plans","Pre-decide how you’ll react to distractions (implementation intentions).","“If I reach for my phone, then I take 3 breaths and keep going.”"],
+["Brain-dump parking lot","Writing stray thoughts on paper lets your head let them go.","Keep a notepad beside you for random thoughts and to-dos."],
+["Match tasks to your energy","Do hard thinking when you’re sharpest and easy admin when you’re low.","Notice your best hours this week and protect one slot."]]},
+{k:"memory",i:"🧠",t:"Memory Boost",s:"make it actually stick",tips:[
+["Sleep is part of studying","Sleep helps lock in what you learned that day.","Review your key points before bed, then actually sleep."],
+["Connect it to what you know","New ideas stick when linked to existing ones (elaboration).","Ask “what is this similar to?” and add it to your knowledge map here."],
+["Draw it","Words plus visuals (dual coding) give your brain two hooks.","Sketch a quick diagram of the idea."],
+["Memory palace","Place items along a familiar route, like your home, to remember lists.","Memorize 5 things by placing each in a different room."]]},
+{k:"sleep",i:"😴",t:"Sleep & Energy",s:"the cheat code nobody uses",tips:[
+["Keep a steady schedule","A consistent sleep and wake time improves sleep quality.","Keep your wake-up time within an hour, even on weekends."],
+["Get the hours you need","Adults generally need about 7–9 hours; teens often need 8–10.","Count back from your wake time to set a bedtime."],
+["Set a caffeine cutoff","Caffeine can linger in your body for many hours.","Stop caffeine around 8 hours before bed."],
+["Move your body","Exercise and short walks can lift mood, energy and focus.","Take a 10-minute walk between study blocks."]]},
+{k:"habit",i:"🌱",t:"Habits & Motivation",s:"consistency beats hype",tips:[
+["Make it tiny","Start so small it feels silly. Two minutes still counts.","Open your notes and read one paragraph."],
+["Stack it","Attach a new habit to one you already do.","“After my morning tea, I do 5 minutes of recall.”"],
+["Remove friction","Make good habits easy and distractions hard.","Lay out your study stuff tonight and log out of distracting apps."],
+["Track the streak","Seeing progress is motivating. Try never to miss twice in a row.","Keep your daily 🔥 streak going in this app."]]},
+{k:"read",i:"📖",t:"Read & Take Notes",s:"understand more, highlight less",tips:[
+["Skim first","Previewing headings and summaries gives your brain a map before you read closely.","Spend 2 minutes surveying a chapter before starting."],
+["Ask questions as you read","Turn headings into questions and hunt for the answers.","Write 3 questions before starting each section."],
+["Notes in your own words","Copying is passive. Paraphrasing forces understanding.","After each section, summarize it in 2 sentences without looking."],
+["Highlight less","Highlighting everything is just rereading in color.","Highlight one sentence per page max, then quiz yourself."]]}];
+function timer(v){var c=el("div","card"),d=el("div","big","25:00"),m=25,left=1500;d.style.textAlign="center";c.appendChild(el("div","tag","FOCUS TIMER ⏱️"));c.appendChild(d);
+ function show(){d.textContent=("0"+Math.floor(left/60)).slice(-2)+":"+("0"+left%60).slice(-2)}
+ [15,25,50].forEach(function(x){var b=el("button","alt",x+" min");b.onclick=function(){clearInterval(window.TM);m=x;left=x*60;show()};c.appendChild(b)});
+ var st=el("button",null,"Start ▶️");st.onclick=function(){clearInterval(window.TM);var end=Date.now()+left*1000;window.TM=setInterval(function(){left=Math.max(0,Math.ceil((end-Date.now())/1000));show();if(left<=0){clearInterval(window.TM);gain(5,"focus block done 🔥");if(PF.snd)snd(660)}},500)};
+ var rs=el("button","alt","Reset");rs.onclick=function(){clearInterval(window.TM);left=m*60;show()};c.appendChild(st);c.appendChild(rs);v.appendChild(c)}
+function vTips(){var v=$("v");v.textContent="";D.tr=D.tr||{};v.appendChild(el("div","tag","GROWTH HUB 💡"));v.appendChild(el("div","hl","tiny habits, big brain energy"));v.appendChild(el("p","mut","Pick a topic. Try the tips and earn aura."));
+ var g=el("div","grid");G.forEach(function(x){var n=x.tips.filter(function(_,i){return D.tr[x.k+i]}).length,t=el("div","card tile");t.appendChild(el("div","ico",x.i));t.appendChild(el("b",null,x.t));t.appendChild(el("div","mut",x.s));t.appendChild(el("div","mut",n+"/4 tried"));t.onclick=function(){vTip(x)};g.appendChild(t)});v.appendChild(g)}
+function vTip(x){var v=$("v");v.textContent="";clearInterval(window.TM);D.tr=D.tr||{};var bk=el("button","alt","← back to hub");bk.onclick=vTips;v.appendChild(bk);
+ v.appendChild(el("div","hl",x.i+" "+x.t));v.appendChild(el("p","mut",x.s));
+ if(x.k=="focus")timer(v);
+ x.tips.forEach(function(t,i){var c=card((i+1)+". "+t[0].toUpperCase(),t[1]);c.appendChild(el("p",null,"👉 Try this: "+t[2]));var id=x.k+i,b=el("button",D.tr[id]?"alt":"",D.tr[id]?"Tried ✅":"I tried this ✅ +2 aura");b.disabled=!!D.tr[id];b.onclick=function(){D.tr[id]=1;sv();gain(2,"tip tried");b.textContent="Tried ✅";b.className="alt";b.disabled=true};c.appendChild(b);v.appendChild(c)});
+ var out=el("div","card pre");out.hidden=true;var pb=el("button",null,"Make me a 7-day plan 🧠");pb.onclick=function(){busy(pb,async function(){out.hidden=false;var a=arche();await T("Make me a realistic 7-day mini plan to improve: "+x.t+". One short line per day, max 120 words total."+(a?" Context: my weakest thinking skill is "+a.low+".":""),function(t){out.textContent=t})})};v.appendChild(pb);v.appendChild(out)}
+
+function mic(v,a){var R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return;var b=el("button","alt","🎤 Speak"),r=null,on=false;b.onclick=function(){if(on){r&&r.stop();return}try{r=new R();r.continuous=true;r.interimResults=false;r.onresult=function(e){for(var i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)a.value+=(a.value?" ":"")+e.results[i][0].transcript};r.onend=r.onerror=function(){on=false;b.textContent="🎤 Speak"};r.start();on=true;b.textContent="⏹ Stop"}catch(e){}};v.appendChild(b)}
+function avgS(a){if(!a.length)return null;var o={};["reasoning","assumptions","evidence","alternatives"].forEach(function(k){o[k]=+(a.reduce(function(t,x){return t+x.s[k]},0)/a.length).toFixed(1)});return o}
+function bd(){var tp=Object.keys(D.tr||{}).length;return[["🔥","7-day streak",(D.st||0)>=7],["🔗","First cross-field link",cross()>=1],["🧠","10 concepts",D.c.length>=10],["📚","5 sessions",D.s.length>=5],["🥊","Faced the Hater",!!(D.f&&D.f.hater)],["⚖️","Both-sides debater",D.s.some(function(x){return x.t=="debate"})],["📓","Journaler (3 entries)",D.j.length>=3],["🏋️","Gym regular (3 workouts)",(D.gp||0)>=3],["🎓","Exam mode on",!!(D.ex&&D.ex.subj)],["🃏","Flashcard maker",D.fc.length>0],["💡","Tip taker (10 tips)",tp>=10],["👑","Big Brain (120 aura)",(D.xp||0)>=120]]}
+function bchk(){D.bg=D.bg||{};var nw=bd().filter(function(b){return b[2]&&!D.bg[b[1]]});if(!nw.length)return;nw.forEach(function(b){D.bg[b[1]]=1});sv();setTimeout(function(){toast("Badge unlocked: "+nw[0][0]+" "+nw[0][1]+" 🏅");confetti()},2400)}
+function bdg(v){var b=bd(),c=card("BADGES 🏅 "+b.filter(function(x){return x[2]}).length+"/"+b.length),g=el("div","grid");b.forEach(function(x){var t=el("div","card stat");t.appendChild(el("div","ico",x[2]?x[0]:"🔒"));t.appendChild(el("div","mut",x[1]));if(!x[2])t.style.opacity=".45";g.appendChild(t)});c.appendChild(g);v.appendChild(c)}
+function tipDay(v){var all=[];G.forEach(function(x){x.tips.forEach(function(t){all.push(t)})});var t=all[Math.floor(Date.now()/DAY)%all.length];v.appendChild(card("TIP OF THE DAY 💡",t[0]+": "+t[1]+"\n👉 "+t[2]))}
+function bcard(v){var c=card("BACKUP & RESTORE 💾","Your progress lives in this browser. Copy a backup code and keep it somewhere safe (notes app, email to yourself)."),o=el("textarea"),m=el("p","mut");o.placeholder="Paste a backup code here to restore…";o.style.minHeight="60px";
+ var b1=el("button",null,"Copy backup code 📋"),b2=el("button","alt","Restore from code ♻️");
+ b1.onclick=function(){var t=JSON.stringify(D);try{navigator.clipboard.writeText(t).then(function(){m.textContent="Backup copied ✅ paste it somewhere safe"},function(){o.value=t;m.textContent="Copy this code manually"})}catch(e){o.value=t;m.textContent="Copy this code manually"}};
+ b2.onclick=function(){try{var x=JSON.parse(o.value);if(!x||!Array.isArray(x.c)||!Array.isArray(x.s))throw 0;if(confirm("Replace your current progress with this backup?")){D=x;D.j=D.j||[];D.fc=D.fc||[];D.f=D.f||{};D.dq=D.dq||{};D.tr=D.tr||{};sv();vMind()}}catch(e){m.textContent="That code doesn’t look right 💀"}};
+ c.appendChild(o);c.appendChild(b1);c.appendChild(b2);c.appendChild(m);v.appendChild(c)}
+function debate(v){var h=el("div","tag","BOTH-SIDES DEBATE ⚖️");h.style.marginTop="26px";v.appendChild(h);v.appendChild(el("p","mut","Argue FOR a topic, then AGAINST it. Scored on how fairly you handle both sides."));
+ var tp=el("input");tp.placeholder="topic (e.g. school should start later)";v.appendChild(tp);var box=el("div");
+ btn(v,"Start debate ⚖️",async function(){var m0=tp.value.trim();if(!m0)return;box.textContent="";box.appendChild(card("MOTION",m0));var f=area(box,"Round 1: argue FOR (your best case)…");
+  var nb=el("button",null,"Next: argue AGAINST ➡️");nb.onclick=function(){if(f.value.trim().length<20)return;nb.hidden=true;var g=area(box,"Round 2: now argue AGAINST (the strongest honest version)…");
+   btn(box,"Judge me ⚖️",async function(){var r=await J(SCORE+"Judge this two-sided debate on: "+m0+"\nFOR: "+f.value+"\nAGAINST: "+g.value+"\nAlso judge fairness (steelman vs strawman). Return JSON {\"scores\":{\"reasoning\":n,\"assumptions\":n,\"evidence\":n,\"alternatives\":n},\"strawman\":[weak or unfair arguments],\"missed\":[strong points missed on either side],\"tip\":string}");var s=nums(r.scores);save("debate",m0,"FOR: "+f.value+"\nAGAINST: "+g.value,s,{tip:r.tip});[scoreCard(s),card("STRAWMAN ALERTS 🚩",r.strawman),card("STRONG POINTS YOU MISSED 🔎",r.missed),card("LEVEL UP TIP ⬆️",r.tip)].forEach(function(x){box.appendChild(x)})})};box.appendChild(nb)});v.appendChild(box)}
+function vJour(){var v=$("v");v.textContent="";v.appendChild(el("div","tag","DAILY MIRROR 📓"));v.appendChild(el("div","hl","what’s on your mind today?"));v.appendChild(el("p","mut","Private journal. Entries stay in your browser. “Patterns” and “letter” send text to Claude for analysis. It’s reflection, not therapy."));
+ var t=area(v,"thoughts, decisions, worries, wins… write freely");
+ btn(v,"Save entry 💾",async function(){if(t.value.trim().length<10)return;D.j.push({d:Date.now(),t:t.value.trim()});sv();gain(5,"journal entry");vJour()});
+ var out=el("div","card pre");out.hidden=true;
+ btn(v,"Find my patterns 🔍",async function(){out.hidden=false;if(D.j.length<3){out.textContent="Write at least 3 entries first, then I can spot patterns 🔒";return}await T("These are my private journal entries (oldest first). Point out recurring thinking patterns or biases (e.g. assumptions, all-or-nothing thinking, catastrophizing), my strengths, and one reflection question. Be kind, specific, non-clinical, no diagnosis. Under 170 words.\n"+D.j.slice(-15).map(function(e){return new Date(e.d).toDateString()+": "+e.t.slice(0,600)}).join("\n"),function(x){out.textContent=x})},true);
+ btn(v,"Weekly letter 💌",async function(){out.hidden=false;var n=Date.now(),a=D.s.filter(function(x){return n-x.d<7*DAY}),b=D.s.filter(function(x){return n-x.d>=7*DAY&&n-x.d<14*DAY});
+  await T("Write a short, warm personal letter (under 180 words) to "+(PF.name||"me")+" about how my thinking changed this week. Include one strength, one growth edge and one challenge for next week. Data: "+JSON.stringify({sessionsThisWeek:a.length,avgThisWeek:avgS(a),avgLastWeek:avgS(b),conceptsTotal:D.c.length,journal:D.j.slice(-4).map(function(e){return e.t.slice(0,300)})}),function(x){out.textContent=x})},true);
+ v.appendChild(out);v.appendChild(el("div","tag","RECENT ENTRIES · "+D.j.length+" TOTAL")).style.marginTop="18px";
+ D.j.slice(-5).reverse().forEach(function(e){v.appendChild(card(new Date(e.d).toDateString().toUpperCase(),e.t))})}
+function vExam(){var v=$("v");v.textContent="";var ex=D.ex||{};v.appendChild(el("div","tag","EXAM PREP 🎓"));var cd=el("div","hl","");v.appendChild(cd);
+ var sj=el("input");sj.placeholder="subject or exam (e.g. Biology Class 12)";sj.value=ex.subj||"";var dt=el("input");dt.type="date";dt.value=ex.date||"";v.appendChild(sj);v.appendChild(dt);
+ function left(){return ex.date?Math.ceil((new Date(ex.date+"T00:00:00")-new Date())/DAY):null}
+ function paint(){var l=left();cd.textContent=l==null?"set your exam date ⏳":l>0?l+" days to go ⏳":l==0?"exam day 🔥 you got this":"exam done 🎉"}
+ function sx(){D.ex=ex={subj:sj.value.trim(),date:dt.value};sv();paint()}sj.oninput=sx;dt.onchange=sx;paint();
+ var out=el("div","card pre");out.hidden=true;
+ btn(v,"Build my plan 📅",async function(){sx();if(!ex.subj)return;out.hidden=false;await T("Create a revision plan for: "+ex.subj+". Today is "+new Date().toISOString().slice(0,10)+(ex.date?"; exam date "+ex.date+" ("+left()+" days left)":"; no exam date set")+". Give 5 key topics to master, a compact schedule (by day or week), 5 likely mock questions and 2 tips for the last 24 hours. Under 260 words, plain text.",function(t){out.textContent=t})});v.appendChild(out);
+ var mq=card("MOCK QUIZ 🎯","Practice on your subject. Answers get graded."),mo=el("div");v.appendChild(mq);
+ btn(mq,"Ask me a question 🎯",async function(){if(!sj.value.trim())return;var r=await J("Ask ONE challenging exam-style question about "+sj.value.trim()+". Return JSON {\"q\":string}");mo.textContent="";mo.appendChild(el("p",null,r.q));var a=area(mo,"your answer…");btn(mo,"Grade me ✅",async function(){var g=await J("Question: "+r.q+"\nAnswer: "+a.value+"\nGrade 0-10 strictly for correctness and completeness. Return JSON {\"score\":number,\"feedback\":string including a brief model answer}");mo.appendChild(el("p","pre","Score "+g.score+"/10 — "+g.feedback));gain(g.score>=7?5:2,"mock quiz")})});mq.appendChild(mo);
+ var fc=card("NOTES → FLASHCARDS 🃏","Paste class notes. The AI turns them into flashcards that come back on a spaced schedule.");v.appendChild(fc);var nt=area(fc,"paste your notes…");
+ btn(fc,"Make flashcards 🃏",async function(){if(nt.value.trim().length<40)return;var r=await J("Turn these notes into up to 10 high-quality flashcards that test understanding. Return JSON {\"cards\":[{\"q\":string,\"a\":string}]}\nNOTES:\n"+nt.value.slice(0,5000));(r.cards||[]).slice(0,10).forEach(function(k){D.fc.push({q:String(k.q),a:String(k.a),box:0,due:Date.now()})});sv();gain(5,"flashcards made");vExam()});
+ var due=D.fc.filter(function(k){return k.due<=Date.now()}),rv=card("FLASHCARD REVIEW 🃏 · "+due.length+" due / "+D.fc.length+" total");v.appendChild(rv);
+ if(!D.fc.length)rv.appendChild(el("p","mut","No cards yet. Make some above."));else if(!due.length)rv.appendChild(el("p","mut","All caught up ✅"));
+ else{var k=due[0];rv.appendChild(el("p",null,"Q: "+k.q));var an=el("p","pre","A: "+k.a);an.hidden=true;rv.appendChild(an);var sh=el("button",null,"Show answer 👀"),gt=el("button",null,"Got it ✅"),ms=el("button","alt","Missed ❌");gt.hidden=ms.hidden=true;
+  sh.onclick=function(){an.hidden=false;sh.hidden=true;gt.hidden=ms.hidden=false};gt.onclick=function(){k.box=Math.min(k.box+1,4);k.due=Date.now()+[1,2,4,8,16][k.box]*DAY;sv();gain(1,"card");vExam()};ms.onclick=function(){k.box=0;k.due=Date.now()+DAY;sv();vExam()};rv.appendChild(sh);rv.appendChild(gt);rv.appendChild(ms)}}
+function vGym(){var v=$("v");v.textContent="";clearInterval(window.TM);v.appendChild(el("div","tag","BRAIN GYM 🏋️"));v.appendChild(el("div","hl","train your brain like a muscle"));v.appendChild(el("p","mut","Quick games and proven methods. Earn aura, build the habit."));
+ var g=el("div","grid");[["🔢","Digit Span","memory",gSpan],["➗","Math Sprint","speed",gMath],["🎨","Stroop Test","focus",gStroop],["🫁","Box Breathing","reset",gBreath],["🔗","Remote Link","creativity",gLink],["📘","Methods Library","8 proven methods",gMeth]].forEach(function(x){var t=el("div","card tile");t.appendChild(el("div","ico",x[0]));t.appendChild(el("b",null,x[1]));t.appendChild(el("div","mut",x[2]));t.onclick=function(){gpage(x)};g.appendChild(t)});v.appendChild(g)}
+function gpage(x){var v=$("v");v.textContent="";clearInterval(window.TM);var b=el("button","alt","← back to gym");b.onclick=vGym;v.appendChild(b);v.appendChild(el("div","hl",x[0]+" "+x[1]));x[3](v)}
+function gdone(m){D.gp=(D.gp||0)+1;gain(3,m)}
+function gSpan(v){var L=3,c=el("div","card"),d=el("div","big","Ready?"),i=el("input"),m=el("p","mut"),go=el("button",null,"Start ▶️"),ok=el("button",null,"Check"),seq="";d.style.textAlign="center";i.placeholder="type the digits…";i.inputMode="numeric";i.hidden=ok.hidden=true;
+ function round(){seq="";for(var k=0;k<L;k++)seq+=Math.floor(Math.random()*10);d.textContent=seq.split("").join(" ");i.hidden=ok.hidden=true;i.value="";m.textContent="Memorize… "+L+" digits";setTimeout(function(){d.textContent="❓";i.hidden=ok.hidden=false;i.focus();m.textContent="Type what you saw"},600+L*700)}
+ go.onclick=function(){go.hidden=true;L=3;round()};
+ ok.onclick=function(){if(i.value.trim()==seq){L++;round()}else{var r=L-1;D.g=D.g||{};D.g.span=Math.max(D.g.span||0,r);gdone("span "+r);d.textContent="Span: "+r;m.textContent="It was "+seq+" · best span "+D.g.span;i.hidden=ok.hidden=true;go.hidden=false;go.textContent="Again 🔁"}};
+ [d,i,ok,m,go].forEach(function(x){c.appendChild(x)});v.appendChild(c);v.appendChild(el("p","mut","Average adults manage about 7 digits. How far can you go?"))}
+function gMath(v){var c=el("div","card"),q=el("div","big","Ready?"),i=el("input"),m=el("p","mut"),sb=el("button",null,"Submit"),go=el("button",null,"Start 60s ⏱️"),sc=0,t=60,a=0;q.style.textAlign="center";i.inputMode="numeric";i.hidden=sb.hidden=true;
+ function nq(){var x=2+Math.floor(Math.random()*18),y=2+Math.floor(Math.random()*18),o=Math.floor(Math.random()*3),s;if(o==1){y=2+Math.floor(Math.random()*8);a=x*y;s=" × "}else if(o==2){if(x<y){var z=x;x=y;y=z}a=x-y;s=" − "}else{a=x+y;s=" + "}q.textContent=x+s+y;i.value=""}
+ function sub(){if(i.value!==""&&+i.value==a)sc++;nq();i.focus()}sb.onclick=sub;i.onkeydown=function(e){if(e.key=="Enter")sub()};
+ go.onclick=function(){sc=0;t=60;go.hidden=true;i.hidden=sb.hidden=false;nq();i.focus();clearInterval(window.TM);window.TM=setInterval(function(){t--;m.textContent=t+"s · score "+sc;if(t<=0){clearInterval(window.TM);D.g=D.g||{};D.g.math=Math.max(D.g.math||0,sc);gdone("math "+sc);q.textContent="Score: "+sc;m.textContent="Best: "+D.g.math;i.hidden=sb.hidden=true;go.hidden=false;go.textContent="Again 🔁"}},1000)};
+ [q,i,sb,m,go].forEach(function(x){c.appendChild(x)});v.appendChild(c)}
+function gStroop(v){var C=[["RED","#ff4d4d"],["BLUE","#4d8dff"],["GREEN","#3ddc84"],["YELLOW","#ffd43b"]],c=el("div","card"),w=el("div",null,"Ready?"),bs=el("div"),m=el("p","mut"),go=el("button",null,"Start ▶️"),n=0,ok=0,t0=0,tot=0,ink=0;w.style.cssText="font-size:2.6rem;font-weight:800;text-align:center;margin:10px 0";
+ function nx(){if(n>=15){t0=0;w.textContent=ok+"/15 ✅";w.style.color="";m.textContent="avg "+(tot/15000).toFixed(2)+"s per answer";go.hidden=false;go.textContent="Again 🔁";gdone("stroop");return}n++;var a=Math.floor(Math.random()*4),b=Math.random()<.75?(a+1+Math.floor(Math.random()*3))%4:a;w.textContent=C[a][0];w.style.color=C[b][1];ink=b;t0=performance.now();m.textContent=n+"/15 · tap the INK colour, not the word"}
+ C.forEach(function(x,k){var b=el("button","alt",x[0]);b.onclick=function(){if(!t0)return;tot+=performance.now()-t0;if(k==ink)ok++;nx()};bs.appendChild(b)});
+ go.onclick=function(){n=0;ok=0;tot=0;go.hidden=true;nx()};[w,bs,m,go].forEach(function(x){c.appendChild(x)});v.appendChild(c)}
+function gBreath(v){var c=el("div","card"),o=el("div","bb"),l=el("div","hl","Ready?"),n=0,P=["Breathe in…","Hold…","Breathe out…","Hold…"],b=el("button",null,"Start 🫁");c.style.textAlign="center";o.style.margin="34px auto";c.appendChild(l);c.appendChild(o);c.appendChild(el("p","mut","4 sec in · 4 hold · 4 out · 4 hold. 4 rounds, about a minute."));
+ b.onclick=function(){clearInterval(window.TM);n=0;o.className="bb";void o.offsetWidth;o.className="bb on";l.textContent=P[0];window.TM=setInterval(function(){n++;if(n>=16){clearInterval(window.TM);o.className="bb";l.textContent="Done 🧘";gdone("reset complete");return}l.textContent=P[n%4]},4000)};c.appendChild(b);v.appendChild(c)}
+function gLink(v){var W=["tide","algorithm","ritual","market","mirror","orchestra","immune system","gravity","language","fire","network","compass","bridge","seed","clock","map"].concat(D.c.slice(-6).map(function(c){return c.n})),a=W[Math.floor(Math.random()*W.length)],b=a;while(b==a)b=W[Math.floor(Math.random()*W.length)];
+ v.appendChild(card("CONNECT THESE TWO 🔗",a.toUpperCase()+"  ↔  "+b.toUpperCase()));var t=area(v,"what connects them? Be clever…"),out=el("div");v.appendChild(out);
+ btn(v,"Rate my creativity 🎨",async function(){var r=await J("Two random concepts: “"+a+"” and “"+b+"”. The person’s link: "+t.value+"\nRate originality and insight 0-10. Return JSON {\"score\":number,\"feedback\":one or two sentences,\"better\":one even sharper connection}");out.textContent="";out.appendChild(card("CREATIVITY "+r.score+"/10",r.feedback+"\n💡 Sharper link: "+r.better));gdone("creative link")});
+ btn(v,"New pair 🔀",async function(){gpage(["🔗","Remote Link","",gLink])},true)}
+function gMeth(v){[["Feynman Technique","Explain the idea in simple words as if teaching a 12-year-old. Wherever you stumble is a gap to study.","understanding"],["Memory Palace","Imagine a familiar route (like your home) and place a vivid image of each thing to remember in each spot. Walk the route to recall.","lists and sequences"],["Chunking","Group information into meaningful units (like 9847 → 98 47) so more fits in working memory.","numbers and vocabulary"],["Spaced Retrieval","Test yourself at growing gaps (1, 2, 4, 8 days) instead of rereading.","long-term memory"],["Mind Mapping","Put the main idea in the centre and branch out related ideas to see how things connect.","the big picture"],["SQ3R","Survey, Question, Read, Recite, Review: a structured way to read a textbook actively.","textbooks"],["5-Minute Mindfulness","Sit quietly and notice your breath. Each time your mind wanders, gently bring it back. The practice builds attention control.","attention"],["Interleaving","Mix different problem types in one session instead of grinding one topic at a time.","problem solving"]].forEach(function(m,i){v.appendChild(card((i+1)+". "+m[0].toUpperCase(),m[1]+"\n🎯 Best for: "+m[2]))})}
+function arche(){var k=["reasoning","assumptions","evidence","alternatives"];if(!D.s.length)return null;var av={};k.forEach(function(x){av[x]=D.s.reduce(function(a,b){return a+b.s[x]},0)/D.s.length});var h=k.slice().sort(function(a,b){return av[b]-av[a]}),A={reasoning:["The Architect 🏛️","build airtight logic"],assumptions:["The Self-Aware Sage 🪞","catch your own bias"],evidence:["The Detective 🔍","always bring the receipts"],alternatives:["The Multiverse Thinker 🌌","see every angle"]};return{a:A[h[0]],low:h[3]}}
+function mcard(v){var a=arche(),c=el("div","card"),L={reasoning:"structured reasoning",assumptions:"spotting your own bias",evidence:"backing claims with receipts",alternatives:"considering other angles"};c.appendChild(el("div","tag","YOUR MIND CARD 🪪"));
+ if(!a){c.appendChild(el("p","mut","Finish a Challenge or Decision Lab to unlock your thinking archetype 🔒"));v.appendChild(c);return}
+ c.appendChild(el("div","hl",a.a[0]));c.appendChild(el("p",null,"You "+a.a[1]+". Growth edge: "+L[a.low]+" 🌱"));
+ var t=(PF.name||"Someone")+" is "+a.a[0]+" on Cognitive Mirror · "+lvl().n+" · "+(D.xp||0)+" aura · "+(D.st||0)+"🔥 streak. What’s your thinking type? 🧠";
+ var b=el("button",null,"Copy my card 📋"),o=el("p","mut");b.onclick=function(){try{navigator.clipboard.writeText(t).then(function(){o.textContent="Copied! Send it to your friends 🫶"},function(){o.textContent=t})}catch(e){o.textContent=t}};c.appendChild(b);c.appendChild(o);v.appendChild(c)}
+function md(m){if(m=="auto")document.documentElement.removeAttribute("data-mode");else document.documentElement.setAttribute("data-mode",m);PF.md=m;pfs();window.recol&&recol()}
+(function(){var sp=$("sp"),pk=$("pk"),nm=$("nm");nm.value=PF.name||"";if(PF.md&&PF.md!="auto")md(PF.md);
+[["sunset","#ff7a1a,#ffb347"],["amber","#ffa000,#ffd54f"],["copper","#d9531e,#f2a65a"],["flame","#ff4d1a,#ff9f1c"]].forEach(function(t){var b=el("button","dot");b.title=t[0];b.style.background="linear-gradient(135deg,"+t[1]+")";b.onclick=function(){th(t[0])};pk.appendChild(b)});
+[["auto","🌓 Auto"],["dark","🌙 Dark"],["light","☀️ Light"]].forEach(function(m){var b=el("button","alt",m[1]);b.onclick=function(){md(m[0])};pk.appendChild(b)});
+try{if(sessionStorage.getItem("cm_in")&&PF.name)sp.className="out"}catch(e){}
+$("enter").onclick=function(){PF.name=nm.value.trim()||"friend";pfs();sp.className="out";try{sessionStorage.setItem("cm_in","1")}catch(e){}if(cur==0)vMind()}})();
+(function(){var t=$("ttl"),sub=$("sub"),tp=$("top"),sp0=$("sp0"),big=56,sm=24,R=150,q=0;
+function fit(){t.style.fontSize="100px";t.style.display="inline-block";var w=t.getBoundingClientRect().width;t.style.display="";big=Math.max(34,Math.min(100*(Math.min(innerWidth,920)-32)/w,124));
+ t.style.fontSize=big+"px";sub.style.maxHeight="none";sub.style.opacity=1;var hE=tp.offsetHeight;sp0.style.height=hE+"px";
+ t.style.fontSize=sm+"px";sub.style.maxHeight="0px";var hC=tp.offsetHeight;R=Math.max(90,hE-hC);sub.style.maxHeight="none";H=sub.scrollHeight;upd()}
+var H=0;
+function upd(){var p=Math.min(1,Math.max(0,scrollY/R)),e=p*p*(3-2*p);tp.style.setProperty("--p",e.toFixed(3));t.style.fontSize=(big+(sm-big)*e).toFixed(1)+"px";sub.style.opacity=(1-Math.min(1,e*1.7)).toFixed(3);sub.style.maxHeight=(H*(1-e)).toFixed(1)+"px"}
+addEventListener("scroll",function(){if(!q)q=requestAnimationFrame(function(){q=0;upd()})},{passive:true});addEventListener("resize",fit);addEventListener("load",fit);fit();setTimeout(fit,400)})();
+nav();vMind();
+</script></body></html>
