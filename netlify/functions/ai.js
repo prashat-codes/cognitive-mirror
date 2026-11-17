@@ -35,19 +35,18 @@ exports.handler = async (event) => {
     }
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + apiKey,
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
         body: JSON.stringify({
-          contents: [
-            { parts: [{ text: prompt }] }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 512
-          }
-        })
+          model: "gemini-3.8-flash",
+          input: prompt
+        }),
+        signal: AbortSignal.timeout(25000)
       }
     );
 
@@ -58,14 +57,24 @@ exports.handler = async (event) => {
         statusCode: 502,
         body: JSON.stringify({
           error: "Gemini request failed",
-          details: result.error?.message || "Unknown API error"
+          details: result.error?.message || JSON.stringify(result)
         })
       };
     }
 
-    const text = result.candidates?.[0]?.content?.parts
-      ?.map(part => part.text || "")
+    const text = result.outputs
+      ?.filter(item => item.type === "text")
+      .map(item => item.text || "")
       .join("") || "";
+
+    if (!text) {
+      return {
+        statusCode: 502,
+        body: JSON.stringify({
+          error: "Gemini returned an empty response"
+        })
+      };
+    }
 
     return {
       statusCode: 200,
@@ -75,7 +84,12 @@ exports.handler = async (event) => {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Server error" })
+      body: JSON.stringify({
+        error: "AI request failed",
+        details: error.name === "TimeoutError"
+          ? "Gemini took too long to respond"
+          : error.message
+      })
     };
   }
 };
