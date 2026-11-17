@@ -116,7 +116,22 @@ async function ens(){
 }
 
 var TONE="Write in a warm, funny Gen Z voice: light slang (no cap, lowkey, it’s giving, cooked, slay, bet) and a few emojis, but stay accurate, kind and genuinely useful; keep slang light so it stays readable. JSON keys must stay exactly as specified. ";
-async function J(p){return (await ens()).json(TONE+p)}
+
+async function J(p){
+  const result = await (await ens()).generate(TONE+p);
+
+  try {
+    const cleaned = result
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(cleaned);
+  } catch (error) {
+    throw new Error("Gemini returned an invalid JSON response");
+  }
+}
+
 async function T(p,cb){if(Array.isArray(p)){p=p.map(function(m,i){return i?m:{role:m.role,content:TONE+m.content}})}else p=TONE+p;var s=await ens();var r=await s(p,{onText:function(x){cb(x.text)},cache:false});return r.text}
 async function busy(b,fn){b.disabled=true;$("msg").textContent=["cooking… 🍳","vibe-checking your brain… 🧠","locking in… 🔒","one sec bestie… ✨","consulting the lore… 📜"][Math.floor(Math.random()*5)];try{await fn();$("msg").textContent=""}catch(e){$("msg").textContent="that flopped 💀 (the AI might be unavailable, or it sent something weird). try again?"}b.disabled=false}
 function card(t,b){var d=el("div","card");d.appendChild(el("div","tag",t));
