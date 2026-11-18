@@ -7,12 +7,12 @@ exports.handler = async (event) => {
     };
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "API key is not configured" })
+      body: JSON.stringify({ error: "Groq API key is not configured" })
     };
   }
 
@@ -34,43 +34,44 @@ exports.handler = async (event) => {
       };
     }
 
-  const response = await fetch(
-  "https://generativelanguage.googleapis.com/v1beta/interactions",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey
-    },
-    body: JSON.stringify({
-      model: "gemini-3.5-flash-lite",
-      input: prompt
-    }),
-    signal: AbortSignal.timeout(25000)
-  }
-);
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-oss-120b",
+          messages: [
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 2048
+        })
+      }
+    );
+
     const result = await response.json();
 
     if (!response.ok) {
       return {
         statusCode: 502,
         body: JSON.stringify({
-          error: "Gemini request failed",
-          details: result.error?.message || JSON.stringify(result)
+          error: "Groq request failed",
+          details: result.error?.message || "Unknown provider error"
         })
       };
     }
 
-    const text = result.outputs
-      ?.filter(item => item.type === "text")
-      .map(item => item.text || "")
-      .join("") || "";
+    const text = result.choices?.[0]?.message?.content || "";
 
     if (!text) {
       return {
         statusCode: 502,
         body: JSON.stringify({
-          error: "Gemini returned an empty response"
+          error: "Groq returned an empty response"
         })
       };
     }
@@ -85,9 +86,7 @@ exports.handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({
         error: "AI request failed",
-        details: error.name === "TimeoutError"
-          ? "Gemini took too long to respond"
-          : error.message
+        details: error.message
       })
     };
   }
