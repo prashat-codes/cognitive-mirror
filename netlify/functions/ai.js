@@ -43,7 +43,7 @@ exports.handler = async (event) => {
           "x-goog-api-key": apiKey
         },
         body: JSON.stringify({
-          model: "gemini-3.8-flash",
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey,
           input: prompt
         }),
         signal: AbortSignal.timeout(25000)
